@@ -1,0 +1,67 @@
+GSI Content Terms of Use (国土地理院コンテンツ利用規約), applying the
+Public Data License version 1.0 (公共データ利用規約 第1.0版, PDL1.0),
+which is compatible with Creative Commons Attribution 4.0 International
+(CC BY 4.0).
+https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html
+https://www.digital.go.jp/resources/open_data/public_data_license_v1.0
+https://creativecommons.org/licenses/by/4.0/legalcode
+
+Everything under this directory comes from the 指定緊急避難場所・指定避難所データ
+(designated emergency evacuation sites and designated shelters) published by
+the Geospatial Information Authority of Japan (GSI, 国土地理院) at
+https://www.gsi.go.jp/bousaichiri/hinanbasho.html and
+https://hinanmap.gsi.go.jp/hinanjocp/hinanbasho/koukaidate.html. The data is
+what municipalities registered with GSI under the Disaster Countermeasures
+Basic Act, Articles 49-4 and 49-7.
+
+GSI's download site and its page of cautions
+(https://www.gsi.go.jp/bousaichiri/hinanbasho-menseki.html) say the GSI
+Content Terms of Use apply, together with its cautions for use. The terms, as
+amended on 20 November 2025 and read on 2026-10-06, say: "本サイトのコンテンツ
+には特段の記載が無い限り公共データ利用規約（第1.0 版） （PDL1.0）が適用されて
+います。" PDL1.0 says it is compatible with CC BY 4.0 and that users may use the
+content under CC BY. The terms require the source to be credited (for
+example "出典：国土地理院ウェブサイト（当該ページのURL）"), require edited or
+processed content to say so separately from the credit, and forbid
+presenting edited content as if GSI had made it.
+
+GSI's cautions for use (ご利用上の注意, as in raw/<date>/ご利用上の注意.txt),
+which it asks to be conveyed accurately to anyone given information made
+from this data:
+
+1.本データは、災害対策基本法第49条の4・第49条の7に基づき市町村長が指定した指定緊急避難場所・指定避難所の情報を各市町村に登録いただいたものです。
+  なお、最新でない場合や未掲載の場合があるため、最新かつ詳細の状況などは必ず当該市町村にご確認ください。
+2.「指定緊急避難場所」と「指定避難所」の違いや、指定緊急避難場所が災害種別ごとに指定されていることを理解した上でご利用ください。
+3.本データは随時更新されますので、利用される場合は、ご注意ください。
+4.本データを用いた情報を第三者に提供する場合は、上記1．～3．の注意事項が正確に伝わるよう、十分にご留意ください。
+
+(1. The data is the designated sites and shelters each mayor designated
+under the Act, as registered by each municipality; it may be out of date or
+incomplete, so always check the current details with the municipality.
+2. Use it understanding the difference between sites and shelters and that
+sites are designated per hazard type. 3. The data is updated at any time.
+4. When providing information made from it to others, make sure 1 to 3 are
+conveyed accurately.)
+
+Source: 出典：国土地理院ウェブサイト（https://www.gsi.go.jp/bousaichiri/hinanbasho.html）
+
+This dataset is not made or endorsed by GSI.
+
+The files under raw/<date>/ are GSI's own, byte for byte; MANIFEST.json
+records their URLs, sizes, sha256 and Last-Modified.
+
+The GeoParquet under parquet/ was made by yuiseki/gsi-evacuation-sites-jp
+from the national CSVs (mergeFromCity_2.csv for sites, mergeFromCity_1.csv
+for shelters). This is an edited form of GSI's data, not a GSI product, and
+GSI has not reviewed it:
+
+  - the Japanese column names were replaced by English ones (the mapping is
+    in data/README.md)
+  - no became an integer, latitude and longitude floating-point numbers; the
+    hazard flags and the same-address flags became booleans, "1" true and an
+    empty cell false; other empty cells became NULL
+  - a Point geometry was added from longitude and latitude, without
+    reprojection; GSI states no datum, and the GeoParquet metadata leaves crs
+    unset (OGC:CRS84), as GSI's GeoJSON implies under RFC 7946
+  - nothing else was changed: no row was added, dropped, merged or reordered,
+    and no text was edited

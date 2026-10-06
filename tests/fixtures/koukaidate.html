@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>避難所等データダウンロードサイト</title>
+<link rel="stylesheet" href="./tablesorter/themes/blue/style.css">
+<link rel="stylesheet" href="hstyle.css">
+<script src="./js/jquery.min.js"></script>
+<script src="./tablesorter/jquery.tablesorter.min.js"></script>
+<script src="./tablesorter/jquery.metadata.js"></script>
+<script src="./js/publichistorylistdata.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+
+<script>
+<!--
+function dlFile(municode) {
+    var zip = new JSZip();
+    const currentDate = new Date();
+    const jstDate = new Date(currentDate.getTime() + (9 * 60 * 60 * 1000));
+
+	// ご利用上の注意.txt をfetchで追加
+    var noticePromise = fetch("../assets/notice/ご利用上の注意.txt")
+        .then(response => response.blob())
+        .then(blob => {
+            zip.file("ご利用上の注意.txt", blob, { binary: true, date: jstDate });
+        });
+
+    // Fetch and add CSV file to ZIP
+    var csvPromise = fetch("../defaultFtpData/csv/" + municode + ".csv")
+        .then(response => response.blob())
+        .then(blob => {
+            zip.file(municode + ".csv", blob, { binary: true, date: jstDate });
+        });
+
+    // Fetch and add geoJSON file to ZIP
+    var geojsonPromise = fetch("../defaultFtpData/geoJSON/" + municode + ".geojson")
+        .then(response => response.blob())
+        .then(blob => {
+            zip.file(municode + ".geojson", blob, { binary: true, date: jstDate });
+        });
+
+    // Generate and download ZIP file
+    Promise.all([noticePromise, csvPromise, geojsonPromise]).then(() => {
+        zip.generateAsync({ type: "blob" })
+            .then(zipBlob => {
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const zipLink = document.createElement('a');
+                zipLink.href = zipUrl;
+                zipLink.download = municode + ".zip";
+                zipLink.click();
+                URL.revokeObjectURL(zipUrl); // Release the object URL
+            });
+    });
+}
+function dlallFile()	{
+	location.href= "../defaultFtpData/csv/mergeFromCity.csv";
+}
+//-->
+</script>
+</head>
+
+<body>
+<div id="skip-link"><a href="#honbun">本文へ移動</a></div>
+
+<article class="inner">
+<section id="logo"><a href="https://www.gsi.go.jp/top.html"><img src="img/000222382.png" alt="国土交通省 国土地理院"></a></section>
+<h1><img src="img/910t.png"alt="">指定緊急避難場所・<img src="img/hinan.png"alt=""> 指定避難所データ　都道府県・市町村別　ダウンロード一覧</h1>
+<p class="area1" id="honbun">本一覧内の日付は国土地理院のデータベースが更新された日であり、各市町村長による指定緊急避難場所・指定避難所の指定日とは異なりますのでご注意ください。<br>
+本ページで提供しているデータ以外に、各市町村の希望により公開していない施設が存在する場合がございます。<strong>最新の指定状況は各市町村にお問い合わせください。</strong><br>
+指定緊急避難場所及び指定避難所の定義、指定緊急避難場所データの地理院地図での閲覧、表示や市町村担当者向けの情報については<a href="https://www.gsi.go.jp/bousaichiri/hinanbasho.html" target="_blank" rel="noopener noreferrer">国土地理院ホームページ</a>をご覧ください。</p>
+
+<h3 class="oshirasetitle">お知らせ</h3>
+<ul id="oshirase"></ul>
+
+<h3>データ項目の名称及び定義</h3>
+
+<h4 class="hinanbasho">指定緊急避難場所</h4>
+
+<table class="table1">
+  <tr>
+    <th scope="col">データ項目の名称</th>
+    <th scope="col">定義</th>
+  <tr>
+    <th scope="row">NO</th>
+    <td> 1 から連番</td>
+</tr>
+</tr>
+  <tr>
+  <th scope="row">全国共通避難所・避難場所 ID（共通ID）</th>
+  <td>内閣府が定めたルールに従って付番　　 <a href="./pdf/kyotsu_ID.pdf" target=”_blank”>全国共通避難所・避難場所 ID(共通ID)について</a></td>
+  </tr>
+  <tr>
+    <th scope="row">施設・場所名</th>
+    <td>指定緊急避難場所の名称</td>
+  </tr>
+  <tr>
+    <th scope="row">住所</th>
+    <td>指定緊急避難場所の住所、「都道府県／市町村／丁目／番地」の順</td>
+  </tr>
+  <tr>
+    <th scope="row">洪水</th>
+    <td>対象とする異常な現象の種類が「洪水」の指定緊急避難場所、該当は「1」、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">崖崩れ、土石流及び地滑り</th>
+    <td>対象とする異常な現象の種類が「崖崩れ、土石流及び地滑り」の指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">高潮</th>
+    <td>対象とする異常な現象の種類が「高潮」の指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">地震</th>
+    <td>対象とする異常な現象の種類が「地震」の指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">津波</th>
+    <td>対象とする異常な現象の種類が「津波」の指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">大規模な火事</th>
+    <td>対象とする異常な現象の種類が「大規模な火事」の指定緊急避難場所、該当は「1」 、非該当は
+無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">内水氾濫</th>
+    <td>対象とする異常な現象の種類が「内水氾濫」の指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">火山現象</th>
+    <td>対象とする異常な現象の種類が「火山現象」の指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">指定避難所との住所同一</th>
+    <td>指定避難所と住所が一致する指定緊急避難場所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">緯度</th>
+    <td>緯度の値、 10 進法</td>
+  </tr>
+  <tr>
+    <th scope="row">経度</th>
+    <td>経度の値、 10 進法</td>
+  </tr>
+  <tr>
+    <th scope="row">備考</th>
+    <td>補足事項がある場合に記載</td>
+  </tr>
+</table>
+
+<h4 class="hinanjo">指定避難所</h4>
+
+<table class="table2">
+  <tr>
+    <th scope="col">データ項目の名称</th>
+    <th scope="col">定義</th>
+  </tr>
+      <tr>
+		<th scope="row">NO</th>
+		<td> 1 から連番</td>
+  </tr>
+  <tr>
+    <th scope="row">全国共通避難所・避難場所 ID（共通ID）</th>
+    <td>内閣府が定めたルールに従って付番　　<a href="./pdf/kyotsu_ID.pdf" target=”_blank”>全国共通避難所・避難場所 ID(共通ID)について</a></td>
+  </tr>
+  <tr>
+    <th scope="row">施設・場所名</th>
+    <td>指定避難所の名称</td>
+  </tr>
+  <tr>
+    <th scope="row">住所</th>
+    <td>指定避難所の住所、「都道府県／市町村／丁目／番地」の順</td>
+  </tr>
+  <tr>
+    <th scope="row">指定緊急避難場所との住所同一</th>
+    <td>指定緊急避難場所と住所が一致する指定避難所、該当は「1」 、非該当は無記入</td>
+  </tr>
+  <tr>
+    <th scope="row">その他市町村長が必要と認める事項</th>
+    <td><a href="https://elaws.e-gov.go.jp/document?lawid=337M50000002052" target="_blank" rel="noopener noreferrer">災害対策基本法施行規則</a>第1条の7の2第2項における「その他市町村長が必要と認める事項」を定めた場合に記入</td>
+  </tr>
+  <tr>
+    <th scope="row">受入対象者</th>
+    <td>受け入れる被災者等を特定する場合に記入（指定福祉避難所のみ）</td>
+  </tr>
+  <tr>
+    <th scope="row">緯度</th>
+    <td>緯度の値、 10 進法</td>
+  </tr>
+  <tr>
+    <th scope="row">経度</th>
+    <td>経度の値、 10 進法</td>
+  </tr>
+  <tr>
+    <th scope="row">備考</th>
+    <td>補足事項がある場合に記載</td>
+  </tr>
+</table>
+
+<h3>CSVファイル内のデータ項目の並び順</h3>
+<h4 class="hinanbasho">指定緊急避難場所</h4>
+<dl class="dl1">
+	<dt>全国（公開している市町村すべて）の公開 csv ファイル：</dt>
+	<dd>NO, 共通ID, 都道府県名及び市町村名, 施設・場所名, 住所, 洪水, 崖崩れ、土石流及び地滑り, 高潮, 地震, 津波, 大規模な火事, 内水氾濫, 火山現象, 指定避難所との住所同一, 緯度, 経度, 備考</dd>
+	<dt>都道府県別の公開 csv ファイル：</dt>
+	<dd>NO, 共通ID, 施設・場所名, 住所, 洪水, 崖崩れ、土石流及び地滑り, 高潮, 地震, 津波, 大規模な火事, 内水氾濫, 火山現象, 指定避難所との住所同一, 緯度, 経度, 備考</dd>
+	<dt>市町村別の公開 csv ファイル：</dt>
+	<dd>NO, 共通ID, 施設・場所名, 住所, 洪水, 崖崩れ、土石流及び地滑り, 高潮, 地震, 津波, 大規模な火事, 内水氾濫, 火山現象, 指定避難所との住所同一, 緯度, 経度, 備考</dd>
+
+</dl>
+
+<h4 class="hinanjo">指定避難所</h4>
+<dl class="dl2">
+	<dt>全国（公開している市町村すべて）の公開 csv ファイル：</dt>
+	<dd>NO, 共通ID, 都道府県名及び市町村名, 施設・場所名, 住所, 指定緊急避難場所との住所同一, その他市町村長が必要と認める事項, 受入対象者, 緯度, 経度, 備考</dd>
+	<dt>都道府県別の公開 csv ファイル</dt>
+	<dd>NO, 共通ID, 施設・場所名, 住所, 指定緊急避難場所との住所同一, その他市町村長が必要と認める事項, 受入対象者, 緯度, 経度, 備考</dd>
+	<dt>市町村別の公開 csv ファイル：</dt>
+	<dd>NO, 共通ID, 施設・場所名, 住所, 指定緊急避難場所との住所同一, その他市町村長が必要と認める事項, 受入対象者, 緯度, 経度, 備考</dd>
+</dl>
+
+<h2 class="mt1">データダウンロード</h2>
+<h3>全国分・都道府県別データ</h3>
+<div class="table-wrapper">
+	<table id="aTable" class="tablesorter">
+		<thead><tr><th class="{sorter:'metadata'}" style="background-color:#ffffff">全国・都道府県</th><th style="background-color:#ffffff">最終更新日</th><th style="background-color:#ffffcc">指定緊急避難場所データ</th><th>指定避難所データ</th></tr></thead>
+		<tbody id="tbody2"></tbody>
+	</table>
+</div>
+
+<h3>市町村別データ</h3>
+<p id="pref_title"><label for="pref_id">都道府県で絞り込む</label></p>
+<select id="pref_id" name="pref_name" onChange="selectedPrefectures()">
+<option value="" selected>全て表示</option>
+<option value="北海道">北海道</option>
+<option value="青森県">青森県</option>
+<option value="岩手県">岩手県</option>
+<option value="宮城県">宮城県</option>
+<option value="秋田県">秋田県</option>
+<option value="山形県">山形県</option>
+<option value="福島県">福島県</option>
+<option value="茨城県">茨城県</option>
+<option value="栃木県">栃木県</option>
+<option value="群馬県">群馬県</option>
+<option value="埼玉県">埼玉県</option>
+<option value="千葉県">千葉県</option>
+<option value="東京都">東京都</option>
+<option value="神奈川県">神奈川県</option>
+<option value="新潟県">新潟県</option>
+<option value="富山県">富山県</option>
+<option value="石川県">石川県</option>
+<option value="福井県">福井県</option>
+<option value="山梨県">山梨県</option>
+<option value="長野県">長野県</option>
+<option value="岐阜県">岐阜県</option>
+<option value="静岡県">静岡県</option>
+<option value="愛知県">愛知県</option>
+<option value="三重県">三重県</option>
+<option value="滋賀県">滋賀県</option>
+<option value="京都府">京都府</option>
+<option value="大阪府">大阪府</option>
+<option value="兵庫県">兵庫県</option>
+<option value="奈良県">奈良県</option>
+<option value="和歌山県">和歌山県</option>
+<option value="鳥取県">鳥取県</option>
+<option value="島根県">島根県</option>
+<option value="岡山県">岡山県</option>
+<option value="広島県">広島県</option>
+<option value="山口県">山口県</option>
+<option value="徳島県">徳島県</option>
+<option value="香川県">香川県</option>
+<option value="愛媛県">愛媛県</option>
+<option value="高知県">高知県</option>
+<option value="福岡県">福岡県</option>
+<option value="佐賀県">佐賀県</option>
+<option value="長崎県">長崎県</option>
+<option value="熊本県">熊本県</option>
+<option value="大分県">大分県</option>
+<option value="宮崎県">宮崎県</option>
+<option value="鹿児島県">鹿児島県</option>
+<option value="沖縄県">沖縄県</option>
+</select>
+<p id="search_title"><label for="search">入力した文字列で絞り込む</label></p>
+<input type="text" id="search" title="（入力例：つくば市）"> <input type="button" value="絞り込む" id="btnNarrow"> <input type="button" value="すべて表示" id="btnAll">
+<div id="lastupdate">最終更新日：</div>
+
+<div class="table-wrapper">
+	<table id="koukaiTable" class="tablesorter">
+		<thead><tr><th class="{sorter:'metadata'}" style="background-color:#ffffff">市町村</th><th style="background-color:#ffffff">公開日</th><th style="background-color:#ffffff">最終更新日</th><th style="background-color:#ffffff">データ整備状況の特筆事項</th><th  style="background-color:#ffffcc">指定緊急避難場所データ</th><th>指定避難所データ</th></tr></thead>
+		<tbody id="tbody1"></tbody>
+	</table>
+</div>
+
+</article>
+
+<div class="pagetop"><a href="#top">ページトップへ</a></div>
+
+<article id="footer">
+	<div class="inner">
+			<div class="footerCopyright">Copyright. Geospatial Information Authority of Japan. ALL RIGHTS RESERVED.</div>
+		</div>
+	</div>
+</article>
+
+<script>
+<!--
+   var target = document.getElementById('search');
+   target.onfocus = function () {
+      if( this.value == this.title ) {
+         this.value='';
+         this.style.color = '#000000';
+      }
+   }
+   target.onblur = function () {
+      if( this.value == '' || this.value == this.title ) {
+         this.value = this.title;
+         this.style.color = '#808080';
+      }
+   }
+   target.onblur();
+//-->
+</script>
+<script>
+jQuery(function ($) {
+	$.ajax({
+		url: '../defaultFtpData/publicHistoryCSV/publicHistoryListData.csv',
+		type:'get',
+		dataType:'text',     // CSV形式のデータを受信
+		cache:false,
+		success: function(data) {
+			//csvを配列に格納
+			var csvList = convertCSVtoArray(data);
+			var lastupdate = "";
+			for(key in csvList) {
+				var cnt = csvList[key].length;
+				if (cnt > 3) {
+					if (csvList[key][3] != "") {
+						if (lastupdate == "") {
+							lastupdate = csvList[key][3];
+						} else if (lastupdate < csvList[key][3]) {
+							lastupdate = csvList[key][3];
+						}
+					}
+				}
+				var upd = " ";
+				if (cnt > 4 && csvList[key][4] == 1) {
+					upd = "データ掲載保留中";
+				} else if (cnt > 4 && csvList[key][4] == 9) {
+					upd = "未提出";
+				} else if (!(csvList[key][2] && csvList[key][3])) {
+					upd = "未提出";
+				}
+
+				if (cnt > 5) {
+					var commentValue = csvList[key][5];
+					if (commentValue.length > 1) {
+						upd = commentValue;
+					}
+				}
+				var csvBtn;
+				var csvBtn2;
+				if (!(csvList[key][2] && csvList[key][3]) || (cnt > 4 && (csvList[key][4] == 2 || csvList[key][4] == 3 || csvList[key][4] == 9 ))) {
+					csvBtn = "";
+					csvBtn2 = "";
+				}
+				else if (csvList[key][4] == 11) {
+					tempKey = key + "_2";
+					csvBtn = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+					csvBtn2 = "";
+
+				} else if (csvList[key][4] == 12) {
+					csvBtn = "";
+					tempKey = key + "_1";
+					csvBtn2 = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+				}
+				else {
+					tempKey = key + "_2";
+					csvBtn = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+					tempKey = key + "_1";
+					csvBtn2 = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+
+				}
+				var str = "<tr><td class="+'"{sortValue:'+"'"+key+"'"+'}">'+csvList[key][1]+"</td><td>"+csvList[key][2]+"</td><td>"+csvList[key][3]+"</td><td>"+upd+"</td><td>"+csvBtn+"</td><td>"+csvBtn2+"</td></tr>";
+				$("#tbody1").append(str);
+			}
+			$("#koukaiTable").tablesorter({ widgets: ['zebra'], sortList: [[0, 0]] });
+			document.getElementById("lastupdate").innerHTML="最終更新日："+lastupdate;
+			$.ajax({
+				url: '../defaultFtpData/publicHistoryCSV/countrySetData.csv',
+				type: 'get',
+				dataType: 'text',
+				cache: false,
+				success: function (data) {
+					// csvを配列に格納
+					var csvListSecond = convertCSVtoArray(data);
+					// 本処理
+					var csvBtn;
+					var csvBtn2;
+					for(key in csvListSecond) {
+						if (csvListSecond[key][1] == 1) {
+							csvBtn = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;mergeFromCity_2&quot;)' style='display: block; margin: 0 auto;'>";
+							csvBtn2 = "";
+
+						} else if (csvListSecond[key][1] == 2) {
+							csvBtn = "";
+							csvBtn2 = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;mergeFromCity_1&quot;)' style='display: block; margin: 0 auto;'>";
+						} else if  (csvListSecond[key][1] == 9) {
+							csvBtn = "";
+							csvBtn2 = "";
+						}
+						else {
+							csvBtn = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;mergeFromCity_2&quot;)' style='display: block; margin: 0 auto;'>";
+							csvBtn2 = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;mergeFromCity_1&quot;)' style='display: block; margin: 0 auto;'>";
+						}
+					}
+					var fileType = "全国データ";
+					var str = "<tr><td>" + fileType + "</td><td>" + lastupdate +"</td><td>"+csvBtn+"</td><td>"+csvBtn2+"</td></tr>";
+					$("#tbody2").append(str);
+				},
+				error: function (error) {
+					console.log("Error fetching countrySetData.csv");
+				}
+			});
+			//var fileType = "全国（公開している市区町村すべて）※UTF-8 BOM付き";
+			//var fileType = "全国データ";
+			//var str = "<tr><td>" + fileType + "</td><td>" + lastupdate + "</td><td><input type='button' value='ダウンロード' onclick='dlFile(&quot;mergeFromCity_2&quot;)' style='display: block; margin: 0 auto;'></td><td><input type='button' value='ダウンロード' onclick='dlFile(&quot;mergeFromCity_1&quot;)' style='display: block; margin: 0 auto;'></td></tr>";
+			//$("#tbody2").append(str);
+
+			$.ajax({
+				url: '../defaultFtpData/publicHistoryCSV/prefectureListData.csv',
+				type: 'get',
+				dataType: 'text',
+				cache: false,
+				success: function (data) {
+					// csvを配列に格納
+					var csvListSecond = convertCSVtoArray(data);
+					// 本処理
+					for(key in csvListSecond) {
+						if (csvListSecond[key][3] == 1) {
+							tempKey = key + "_2";
+							csvBtn = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+							csvBtn2 = "";
+
+						} else if (csvListSecond[key][3] == 2) {
+							csvBtn = "";
+							tempKey = key + "_1";
+							csvBtn2 = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+						} else if  (csvListSecond[key][3] == 9) {
+							csvBtn = "";
+							csvBtn2 = "";
+						}
+						else {
+							var tempKey;
+							tempKey = key + "_2";
+							var csvBtn = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+							tempKey = key + "_1";
+							var csvBtn2 = "<input type='button' value='ダウンロード' onclick='dlFile(&quot;" + tempKey + "&quot;)' style='display: block; margin: 0 auto;'>";
+						}
+
+						var str = "<tr><td class="+'"{sortValue:'+"'"+key+"'"+'}">'+csvListSecond[key][1]+"</td><td>"+csvListSecond[key][2]+"</td><td>"+csvBtn+"</td><td>"+csvBtn2+"</td></tr>";
+						$("#tbody2").append(str);
+					}
+					$("#aTable").tablesorter({ widgets: ['zebra'], sortList: [[0, 0]] });
+				},
+				error: function (error) {
+					console.log("Error fetching prefectureListData.csv");
+				}
+			});
+
+		}
+	});
+});
+</script>
+<script>
+$(function(){
+	$("#oshirase").load("./oshirase.html?t=" + new Date().getTime());
+});
+	// scroll
+	$('a[href^="#"]').on('click', function() {
+		var speed = 500;
+		var href= $(this).attr('href');
+		var target = $(href == "#" || href == "" ? 'html' : href);
+		var position = target.offset().top;
+		$('html, body').animate({scrollTop:position}, speed, 'swing');
+		return false;
+	});
+</script>
+</body>
+</html>

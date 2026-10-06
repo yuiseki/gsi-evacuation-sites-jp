@@ -1,0 +1,93 @@
+# Where this data comes from and what was done to it.
+
+source:
+  name: 指定緊急避難場所・指定避難所データ (designated emergency evacuation sites and designated shelters)
+  publisher: Geospatial Information Authority of Japan (GSI, 国土地理院)
+  registrants: the municipalities, under the Disaster Countermeasures Basic Act Art. 49-4 and 49-7
+  page: https://www.gsi.go.jp/bousaichiri/hinanbasho.html
+  download_terms_page: https://hinanmap.gsi.go.jp/index.html
+  listing_page: https://hinanmap.gsi.go.jp/hinanjocp/hinanbasho/koukaidate.html
+  cautions: https://www.gsi.go.jp/bousaichiri/hinanbasho-menseki.html
+  secondary_copies_not_used:
+    - https://www.geospatial.jp/ckan/dataset/db74071f-cd0a-406d-ba3d-57c7a25d9925 (AIGID's Shapefile and GeoJSON made from GSI's data, sites only, June 2026)
+  licence:
+    applied: GSI Content Terms of Use -> PDL1.0, compatible with CC BY 4.0 (read 2026-10-06)
+    terms: https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html
+    terms_amended: 2025-11-20
+    pdl: https://www.digital.go.jp/resources/open_data/public_data_license_v1.0
+    card: "license: cc-by-4.0"
+    attribution_required: true
+    indicate_changes: true
+    no_impersonation: true
+    commercial_use: true
+    cautions_to_pass_on: true
+    survey_act: not a survey result; GSI attaches no Survey Act notice to this data
+  update_pattern: >-
+    Overwritten in place; regenerated every morning (Last-Modified about 00:30 UTC).
+    No release number. The listing shows a 最終更新日 per municipality and prefecture.
+  crs: >-
+    Not stated by GSI. Its GeoJSON has no crs member (RFC 7946: WGS 84 lon/lat);
+    the GeoParquet leaves crs unset (OGC:CRS84). No reprojection.
+  citation: 出典：国土地理院ウェブサイト（https://www.gsi.go.jp/bousaichiri/hinanbasho.html）
+
+fetches:
+  "2026-10-05":
+    version_is: the latest 最終更新日 in publicHistoryListData.csv
+    fetched: 2026-10-06
+    municipalities: {listed: 1747, both: 1691, sites_only: 8, shelters_only: 27, none: 21}
+    published_row_counts: none stated by GSI
+    files:
+      mergeFromCity_2.csv:
+        bytes: 17001696
+        sha256: e75b3e94c65dd2d348572ea6f9288fef920bb8ee4b7d1d607d51202f6abed16c
+        last_modified: "Tue, 06 Oct 2026 00:30:57 GMT"
+        encoding: utf-8-sig
+        records: 115872
+      mergeFromCity_2.geojson:
+        bytes: 86697793
+        sha256: 25810f3d5985b967c4966aad4c5c737a3b643ad76e3e5b76d577e54151f583de
+        last_modified: "Tue, 06 Oct 2026 00:31:02 GMT"
+        features: 115872
+      mergeFromCity_1.csv:
+        bytes: 11704937
+        sha256: b4394c9cce526ea5d759b01be0d5bd427298817a84e9a314ec383d5bfbd958fa
+        last_modified: "Tue, 06 Oct 2026 00:30:57 GMT"
+        encoding: utf-8-sig
+        records: 83391
+      mergeFromCity_1.geojson:
+        bytes: 52055067
+        sha256: 86aa4344deb4d0697f3162ddf29c5d0f16b8faebefac9c04e794e1c67d756c66
+        last_modified: "Tue, 06 Oct 2026 00:31:01 GMT"
+        features: 83391
+      publicHistoryListData.csv:
+        bytes: 90459
+        sha256: c92eab3a0ec750295f63f0fdce96f60f60f97ef1a92a8d685ec7435554f784c2
+        rows: 1747
+      prefectureListData.csv:
+        bytes: 1372
+        sha256: f11b99452936e9fd30cd614b3a014cac794be353ded95f7b6058c17ee27c7c47
+        rows: 47
+      countrySetData.csv:
+        bytes: 4
+        sha256: b3a95f7580c3e36ddc04a5f1a09cc500fd78fa30c2362928af4151d0d51d6558
+      ご利用上の注意.txt:
+        bytes: 1091
+        sha256: eb7ab83ab8e60bdbb7a9df5c671172b0081d967257a30090bcb4dce4b313e597
+        last_modified: "Wed, 01 Apr 2026 05:11:08 GMT"
+        encoding: cp932
+    subsets:
+      sites: {file: parquet/sites.parquet, rows: 115872, municipalities: 1699, from: mergeFromCity_2.csv}
+      shelters: {file: parquet/shelters.parquet, rows: 83391, municipalities: 1718, from: mergeFromCity_1.csv}
+
+checks: >-
+  scripts/02_verify.py: sizes and sha256 against MANIFEST.json; strict decoding;
+  both CSVs read with the csv module, NO runs 1..n; each GeoJSON one Point per CSV
+  record, same order, same 共通ID, coordinates within six-decimal rounding; every
+  Parquet cell (3,086,388 with geometry) equal to the CSV; GeoParquet metadata;
+  readable without DuckDB extensions; no bloom filters.
+
+modifications:
+  - Japanese column names replaced by English ones
+  - no INTEGER; latitude, longitude DOUBLE; hazard and same-address flags BOOLEAN ("1" true, empty false); other empty cells NULL
+  - Point geometry from (longitude, latitude), no reprojection, GeoParquet 1.0.0, crs unset
+  - no rows added, dropped or reordered; text unchanged
